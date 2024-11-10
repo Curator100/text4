@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #2f2f2f;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        .container {
+            background-color: #444;
+            padding: 20px;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #fff;
+            background-color: #222;
+            color: #fff;
+            font-size: 16px;
+            border-radius: 4px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #FF1E00;
+            border: none;
+            color: #fff;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #d10f00;
+        }
+        .result {
+            margin-top: 20px;
+            background-color: #333;
+            padding: 15px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Enter Your Roll Number</h1>
+        <input type="text" id="roll" placeholder="Enter your roll number" required>
+        
+        <h2>Quiz</h2>
+        <p>1. What is 5 + 3?</p>
+        <input type="radio" id="q1a" name="q1" value="1">
+        <label for="q1a">8</label><br>
+        <input type="radio" id="q1b" name="q1" value="0">
+        <label for="q1b">6</label><br>
+        
+        <p>2. What is the capital of France?</p>
+        <input type="radio" id="q2a" name="q2" value="1">
+        <label for="q2a">Paris</label><br>
+        <input type="radio" id="q2b" name="q2" value="0">
+        <label for="q2b">London</label><br>
+
+        <button onclick="submitQuiz()">Submit</button>
+
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        function submitQuiz() {
+            const rollNumber = document.getElementById("roll").value.trim();
+            const q1 = document.querySelector('input[name="q1"]:checked');
+            const q2 = document.querySelector('input[name="q2"]:checked');
+
+            // Calculate total marks
+            let totalMarks = 0;
+            if (q1) totalMarks += parseInt(q1.value);
+            if (q2) totalMarks += parseInt(q2.value);
+
+            // Clear previous result
+            document.getElementById("result").innerHTML = "";
+
+            // Check if roll number is provided and answers are selected
+            if (!rollNumber) {
+                document.getElementById("result").innerHTML = `
+                    <p style="color: #FF0000;">Please enter a roll number.</p>
+                `;
+                return;
+            }
+
+            if (!q1 || !q2) {
+                document.getElementById("result").innerHTML = `
+                    <p style="color: #FF0000;">Please answer all questions.</p>
+                `;
+                return;
+            }
+
+            // Construct the URL to send data to Google Sheets
+            const url = `https://script.google.com/macros/s/AKfycbyjxiarXny2ItWcNrLSYwOa0QC30OH-rnhU7mn-pv0C1D-S-fNE_QTp65v13R8IKdSL7Q/exec`;
+
+            const params = {
+                roll: rollNumber,
+                marks: totalMarks
+            };
+
+            // Send data to Google Apps Script
+            fetch(url, {
+                method: 'POST',
+                body: new URLSearchParams(params)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    document.getElementById("result").innerHTML = `
+                        <p>Thank you for completing the quiz!</p>
+                        <p>Your marks: ${totalMarks}</p>
+                    `;
+                } else {
+                    document.getElementById("result").innerHTML = `
+                        <p style="color: #FF0000;">An error occurred. Please try again later.</p>
+                    `;
+                }
+            })
+            .catch(error => {
+                document.getElementById("result").innerHTML = `
+                    <p style="color: #FF0000;">An error occurred. Please try again later.</p>
+                `;
+            });
+        }
+    </script>
+</body>
+</html>
